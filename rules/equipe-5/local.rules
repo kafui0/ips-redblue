@@ -9,4 +9,117 @@
 # Ajoutez vos regles ci-dessous (sid : 50XX)
 # Exemple :
 # alert http any any -> $HTTP_SERVERS any (msg:"Exemple"; flow:established,to_server; http.uri; content:"test"; nocase; sid:5001; rev:1;)
+alert http any any -> any any (
+msg:"SQLi - UNION SELECT";
+flow:to_server,established;
+http.uri;
+pcre:"/union.*select/i";
+classtype:web-application-attack;
+sid:1001001;
+rev:1;
+)
+
+
+alert http any any -> any any (
+msg:"SQLi - Boolean Injection";
+flow:to_server,established;
+http.uri;
+pcre:"/(\bor\b|\band\b).*(=)/i";
+classtype:web-application-attack;
+sid:1001002;
+rev:1;
+)
+
+
+alert http any any -> any any (
+msg:"SQLi - SQL Comment Detected";
+flow:to_server,established;
+http.uri;
+content:"--";
+nocase;
+classtype:web-application-attack;
+sid:1001003;
+rev:1;
+)
+
+alert http any any -> any any (
+msg:"SQLi - SQL Comment #";
+flow:to_server,established;
+http.uri;
+content:"#";
+classtype:web-application-attack;
+sid:1001004;
+rev:1;
+)
+
+
+alert http any any -> any any (
+msg:"SQLi - Encoded Quote";
+flow:to_server,established;
+http.uri;
+pcre:"/(\%27)|(\')|(\%22)|(\")/i";
+classtype:web-application-attack;
+sid:1001005;
+rev:1;
+)
+
+
+
+alert http any any -> any any (
+msg:"SQLi - Data Extraction";
+flow:to_server,established;
+http.uri;
+pcre:"/select.*from/i";
+classtype:web-application-attack;
+sid:1001006;
+rev:1;
+)
+
+
+alert http any any -> any any (
+msg:"SQLi - DVWA users table";
+flow:to_server,established;
+http.uri;
+content:"users";
+nocase;
+classtype:web-application-attack;
+sid:1001007;
+rev:1;
+)
+
+
+alert http any any -> any any (
+msg:"SQLi - Time Based Attack";
+flow:to_server,established;
+http.uri;
+pcre:"/(sleep\s*\()|(benchmark\s*\()/i";
+classtype:web-application-attack;
+sid:1001008;
+rev:1;
+)
+
+
+alert http any any -> any any (
+msg:"SQLi - Information Schema Access";
+flow:to_server,established;
+http.uri;
+content:"information_schema";
+nocase;
+classtype:web-application-attack;
+sid:1001009;
+rev:1;
+)
+
+
+alert http any any -> any any (
+msg:"SQLi - Generic Pattern";
+flow:to_server,established;
+http.uri;
+pcre:"/(union.*select|select.*from|or.*=|and.*=)/i";
+classtype:web-application-attack;
+sid:1001010;
+rev:1;
+)
+
+
 
