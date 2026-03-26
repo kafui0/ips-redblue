@@ -1,12 +1,190 @@
-# =============================================================================
-#  local.rules — Equipe 7
-#  Round : Injection SQL
-#  IMPORTANT : chaque regle sur UNE SEULE LIGNE
-#  Recharger : docker exec suricata suricatasc -c reload-rules
-#  Alertes   : docker exec suricata tail -f /var/log/suricata/fast.log
-# =============================================================================
+# =============================================================
+# Règles Suricata - Équipe 7 - Blue Team
+# Round 1 : Détection des injections SQL (DVWA)
+# =============================================================
 
-# Ajoutez vos regles ci-dessous (sid : 70XX)
-# Exemple :
-# alert http any any -> $HTTP_SERVERS any (msg:"Exemple"; flow:established,to_server; http.uri; content:"test"; nocase; sid:7001; rev:1;)
+# ----------------------------------------------------------
+# 1. Mots-clés SQL classiques dans les requêtes HTTP GET/POST
+# ----------------------------------------------------------
 
+alert http any any -> any any (
+    msg:"SQLI - UNION SELECT détecté";
+    flow:established,to_server;
+    http.uri;
+    content:"UNION"; nocase;
+    content:"SELECT"; nocase; distance:0;
+    classtype:web-application-attack;
+    sid:9000001; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - OR 1=1 détecté";
+    flow:established,to_server;
+    http.uri;
+    content:"OR"; nocase;
+    pcre:"/OR\s+1\s*=\s*1/i";
+    classtype:web-application-attack;
+    sid:9000002; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - AND 1=1 détecté";
+    flow:established,to_server;
+    http.uri;
+    pcre:"/AND\s+1\s*=\s*1/i";
+    classtype:web-application-attack;
+    sid:9000003; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - Commentaire SQL (--) détecté";
+    flow:established,to_server;
+    http.uri;
+    content:"--";
+    classtype:web-application-attack;
+    sid:9000004; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - Commentaire SQL (#) détecté";
+    flow:established,to_server;
+    http.uri;
+    content:"%23";
+    classtype:web-application-attack;
+    sid:9000005; rev:1;
+)
+
+# ----------------------------------------------------------
+# 2. Payloads encodés (URL encoding courant)
+# ----------------------------------------------------------
+
+alert http any any -> any any (
+    msg:"SQLI - UNION SELECT encodé URL";
+    flow:established,to_server;
+    http.uri;
+    content:"UNION%20SELECT"; nocase;
+    classtype:web-application-attack;
+    sid:9000006; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - UNION+SELECT encodé";
+    flow:established,to_server;
+    http.uri;
+    content:"UNION+SELECT"; nocase;
+    classtype:web-application-attack;
+    sid:9000007; rev:1;
+)
+
+# ----------------------------------------------------------
+# 3. Fonctions SQL dangereuses
+# ----------------------------------------------------------
+
+alert http any any -> any any (
+    msg:"SQLI - Fonction SLEEP() détectée (time-based blind)";
+    flow:established,to_server;
+    http.uri;
+    content:"SLEEP("; nocase;
+    classtype:web-application-attack;
+    sid:9000008; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - Fonction BENCHMARK() détectée";
+    flow:established,to_server;
+    http.uri;
+    content:"BENCHMARK("; nocase;
+    classtype:web-application-attack;
+    sid:9000009; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - Fonction LOAD_FILE() détectée";
+    flow:established,to_server;
+    http.uri;
+    content:"LOAD_FILE("; nocase;
+    classtype:web-application-attack;
+    sid:9000010; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - Fonction INTO OUTFILE détectée";
+    flow:established,to_server;
+    http.uri;
+    content:"INTO"; nocase;
+    content:"OUTFILE"; nocase; distance:0;
+    classtype:web-application-attack;
+    sid:9000011; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - information_schema détecté";
+    flow:established,to_server;
+    http.uri;
+    content:"information_schema"; nocase;
+    classtype:web-application-attack;
+    sid:9000012; rev:1;
+)
+
+# ----------------------------------------------------------
+# 4. Body POST (injections via formulaires DVWA)
+# ----------------------------------------------------------
+
+alert http any any -> any any (
+    msg:"SQLI - UNION SELECT dans le body POST";
+    flow:established,to_server;
+    http.request_body;
+    content:"UNION"; nocase;
+    content:"SELECT"; nocase; distance:0;
+    classtype:web-application-attack;
+    sid:9000013; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - OR dans le body POST";
+    flow:established,to_server;
+    http.request_body;
+    pcre:"/OR\s+[\'\"]?\d+[\'\"]?\s*=\s*[\'\"]?\d+[\'\"]?/i";
+    classtype:web-application-attack;
+    sid:9000014; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - Commentaire SQL dans le body POST";
+    flow:established,to_server;
+    http.request_body;
+    content:"--";
+    classtype:web-application-attack;
+    sid:9000015; rev:1;
+)
+
+# ----------------------------------------------------------
+# 5. Blind SQLi - détection par pattern générique
+# ----------------------------------------------------------
+
+alert http any any -> any any (
+    msg:"SQLI - Tentative Blind SQLi avec AND";
+    flow:established,to_server;
+    http.uri;
+    pcre:"/AND\s+[\'\"]?\d+[\'\"]?\s*=\s*[\'\"]?\d+[\'\"]?/i";
+    classtype:web-application-attack;
+    sid:9000016; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - Guillemet simple suspect dans l'URI";
+    flow:established,to_server;
+    http.uri;
+    content:"%27";
+    classtype:web-application-attack;
+    sid:9000017; rev:1;
+)
+
+alert http any any -> any any (
+    msg:"SQLI - Guillemet simple (') dans l'URI";
+    flow:established,to_server;
+    http.uri;
+    content:"'";
+    classtype:web-application-attack;
+    sid:9000018; rev:1;
+)
