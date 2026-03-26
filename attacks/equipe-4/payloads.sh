@@ -24,22 +24,18 @@ echo "[*] Cookie recupere"
 echo ""
 
 # ── Payload 1 — REMPLACEZ PAR VOTRE ATTAQUE ────────────────────────────────
-echo "1;select+1&id=2,3+from+users+where+id=1–"
+# echo "[1] Payload basique..."
+echo "http://localhost:8080/vulnerabilities/sqli/?id=%27+or+1%3D1%23&Submit=Submit#"
 RESULT=$(curl -s -b "$COOKIE_FILE" \
   "http://$TARGET:$PORT/vulnerabilities/sqli/?id=TEST1&Submit=Submit" \
   -o /dev/null -w "%{http_code}")
 echo "    HTTP $RESULT"
 
 # ── Payload 2 ───────────────────────────────────────────────────────────────
-echo "1 +#1q%0AuNiOn all#qa%0A#%0AsEleCt"
-RESULT2=$(curl -s -b "$COOKIE_FILE" \
-  "http://$TARGET:$PORT/vulnerabilities/sqli/?id=TEST2&Submit=Submit" \
-  -o /dev/null -w "%{http_code}")
-echo "    HTTP $RESULT2"
+
 
 # ── Payload 3 ───────────────────────────────────────────────────────────────
-echo "%55nion(%53elect 1,2,3)– - "
-# A completer
+
 
 echo ""
 echo "=== Fin des attaques. Verifiez fast.log pour les alertes. ==="
