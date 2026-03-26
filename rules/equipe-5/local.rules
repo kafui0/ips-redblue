@@ -1,125 +1,27 @@
 # =============================================================================
 #  local.rules — Equipe 5
-#  Round : Injection SQL
-#  IMPORTANT : chaque regle sur UNE SEULE LIGNE
-#  Recharger : docker exec suricata suricatasc -c reload-rules
-#  Alertes   : docker exec suricata tail -f /var/log/suricata/fast.log
+#  Round : Injection SQL ULTIMATE DEFENSE
 # =============================================================================
 
-# Ajoutez vos regles ci-dessous (sid : 50XX)
-# Exemple :
-# alert http any any -> $HTTP_SERVERS any (msg:"Exemple"; flow:established,to_server; http.uri; content:"test"; nocase; sid:5001; rev:1;)
-alert http any any -> any any (
-msg:"SQLi - UNION SELECT";
-flow:to_server,established;
-http.uri;
-pcre:"/union.*select/i";
-classtype:web-application-attack;
-sid:1001001;
-rev:1;
-)
+
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi OR 1=1"; flow:established,to_server; http.uri; content:"or 1=1"; nocase; sid:6001; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi UNION SELECT"; flow:established,to_server; http.uri; content:"union select"; nocase; sid:6002; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi SELECT keyword"; flow:established,to_server; http.uri; content:"select "; nocase; sid:6003; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi INSERT keyword"; flow:established,to_server; http.uri; content:"insert "; nocase; sid:6004; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi UPDATE keyword"; flow:established,to_server; http.uri; content:"update "; nocase; sid:6005; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi DELETE keyword"; flow:established,to_server; http.uri; content:"delete "; nocase; sid:6006; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi DROP keyword"; flow:established,to_server; http.uri; content:"drop "; nocase; sid:6007; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi comment --"; flow:established,to_server; http.uri; content:"--"; nocase; sid:6008; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi comment #"; flow:established,to_server; http.uri; content:"#"; nocase; sid:6009; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi sleep time attack"; flow:established,to_server; http.uri; content:"sleep("; nocase; sid:6010; rev:1;)
 
 
-alert http any any -> any any (
-msg:"SQLi - Boolean Injection";
-flow:to_server,established;
-http.uri;
-pcre:"/(\bor\b|\band\b).*(=)/i";
-classtype:web-application-attack;
-sid:1001002;
-rev:1;
-)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi possible obfuscated keyword in URI"; flow:established,to_server; http.uri; pcre:"/(select|union|insert|update|delete|drop)/i"; sid:6011; rev:1;)
 
 
-alert http any any -> any any (
-msg:"SQLi - SQL Comment Detected";
-flow:to_server,established;
-http.uri;
-content:"--";
-nocase;
-classtype:web-application-attack;
-sid:1001003;
-rev:1;
-)
-
-alert http any any -> any any (
-msg:"SQLi - SQL Comment #";
-flow:to_server,established;
-http.uri;
-content:"#";
-classtype:web-application-attack;
-sid:1001004;
-rev:1;
-)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi POST body"; flow:established,to_server; http.client_body; pcre:"/(select|union|insert|update|delete|drop|or\s*1=1|information_schema|sleep\()/i"; sid:6012; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi comment in POST body"; flow:established,to_server; http.client_body; content:"--"; nocase; sid:6013; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi hash comment in POST body"; flow:established,to_server; http.client_body; content:"#"; nocase; sid:6014; rev:1;)
 
 
-alert http any any -> any any (
-msg:"SQLi - Encoded Quote";
-flow:to_server,established;
-http.uri;
-pcre:"/(\%27)|(\')|(\%22)|(\")/i";
-classtype:web-application-attack;
-sid:1001005;
-rev:1;
-)
-
-
-
-alert http any any -> any any (
-msg:"SQLi - Data Extraction";
-flow:to_server,established;
-http.uri;
-pcre:"/select.*from/i";
-classtype:web-application-attack;
-sid:1001006;
-rev:1;
-)
-
-
-alert http any any -> any any (
-msg:"SQLi - DVWA users table";
-flow:to_server,established;
-http.uri;
-content:"users";
-nocase;
-classtype:web-application-attack;
-sid:1001007;
-rev:1;
-)
-
-
-alert http any any -> any any (
-msg:"SQLi - Time Based Attack";
-flow:to_server,established;
-http.uri;
-pcre:"/(sleep\s*\()|(benchmark\s*\()/i";
-classtype:web-application-attack;
-sid:1001008;
-rev:1;
-)
-
-
-alert http any any -> any any (
-msg:"SQLi - Information Schema Access";
-flow:to_server,established;
-http.uri;
-content:"information_schema";
-nocase;
-classtype:web-application-attack;
-sid:1001009;
-rev:1;
-)
-
-
-alert http any any -> any any (
-msg:"SQLi - Generic Pattern";
-flow:to_server,established;
-http.uri;
-pcre:"/(union.*select|select.*from|or.*=|and.*=)/i";
-classtype:web-application-attack;
-sid:1001010;
-rev:1;
-)
-
-
-
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi general catch-all URI or BODY"; flow:established,to_server; http.uri; http.client_body; pcre:"/(select|union|insert|update|delete|drop|or\s*1=1)/i"; sid:6015; rev:1;)
