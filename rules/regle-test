@@ -1,0 +1,1 @@
+alert http any any -> 172.20.0.0/24 80 (msg:"SQLi UNION SELECT avec evasion"; flow:established,to_server; http.uri; pcre:"/(%27|'|%22|\").*((%55|u)(%4e|n)(%49|i)(%4f|o)(%4e|n)|union).{0,20}((%53|s)(%45|e)(%4c|l)(%45|e)(%43|c)(%54|t)|select)/Ui"; classtype:web-application-attack; sid:3000001; rev:1;)
