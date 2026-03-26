@@ -1,12 +1,17 @@
 # =============================================================================
-#  local.rules — Equipe 8
-#  Round : Injection SQL
-#  IMPORTANT : chaque regle sur UNE SEULE LIGNE
-#  Recharger : docker exec suricata suricatasc -c reload-rules
-#  Alertes   : docker exec suricata tail -f /var/log/suricata/fast.log
+#  local.rules — Règles Suricata
+#  IMPORTANT : chaque règle doit tenir sur UNE SEULE LIGNE
+#  Rechargement : docker exec suricata suricatasc -c reload-rules
+#  Alertes     : docker exec suricata tail -f /var/log/suricata/fast.log
 # =============================================================================
 
-# Ajoutez vos regles ci-dessous (sid : 80XX)
-# Exemple :
-# alert http any any -> $HTTP_SERVERS any (msg:"Exemple"; flow:established,to_server; http.uri; content:"test"; nocase; sid:8001; rev:1;)
 
+# -----------------------------------------------------------------------------
+# MODULE 3 — Exercice B : injection SQL UNION SELECT
+# Objectif : détecter UNION SELECT dans les URI HTTP
+# -----------------------------------------------------------------------------
+# TODO : décommenter et compléter
+# alert http any any -> $HTTP_SERVERS any (msg:"TODO - Injection SQL UNION SELECT"; flow:established,to_server; http.uri; content:"UNION"; nocase; content:"SELECT"; nocase; distance:1; sid:1000002; rev:1;)
+
+# Solution (décommenter pour vérifier) :
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - Tentative injection SQL UNION SELECT"; flow:established,to_server; http.uri; content:"UNION"; nocase; content:"SELECT"; nocase; distance:1; classtype:web-application-attack; sid:1000002; rev:1;)
