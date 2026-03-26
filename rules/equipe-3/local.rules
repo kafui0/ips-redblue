@@ -10,3 +10,32 @@
 # Exemple :
 # alert http any any -> $HTTP_SERVERS any (msg:"Exemple"; flow:established,to_server; http.uri; content:"test"; nocase; sid:3001; rev:1;)
 alert http any any -> $HTTP_SERVERS any (msg:"WEB - Tentative injection SQL UNION SELECT"; flow:established,to_server; http.uri; content:"UNION"; nocase; content:"SELECT"; nocase; distance:1; classtype:web-application-attack; sid:1000002; rev:1;)
+# Règle 1 - UNION SELECT classique
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - SQLi UNION SELECT"; flow:established,to_server; http.uri; content:"UNION"; nocase; content:"SELECT"; nocase; distance:1; classtype:web-application-attack; sid:1000002; rev:1;)
+
+# Règle 2 - SELECT FROM sans UNION
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - SQLi SELECT FROM"; flow:established,to_server; http.uri; content:"select"; nocase; content:"from"; nocase; distance:1; classtype:web-application-attack; sid:1000003; rev:1;)
+
+# Règle 3 - Commentaires SQL classiques -- et #
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - SQLi commentaire SQL"; flow:established,to_server; http.uri; content:"--"; classtype:web-application-attack; sid:1000004; rev:1;)
+
+# Règle 4 - Guillemet simple (début d'injection)
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - SQLi guillemet simple"; flow:established,to_server; http.uri; content:"'"; classtype:web-application-attack; sid:1000005; rev:1;)
+
+# Règle 5 - OR 1=1 (bypass authentification)
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - SQLi OR 1=1"; flow:established,to_server; http.uri; content:"OR"; nocase; content:"1=1"; nocase; distance:1; classtype:web-application-attack; sid:1000006; rev:1;)
+
+# Règle 6 - DROP TABLE
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - SQLi DROP TABLE"; flow:established,to_server; http.uri; content:"DROP"; nocase; content:"TABLE"; nocase; distance:1; classtype:web-application-attack; sid:1000007; rev:1;)
+
+# Règle 7 - INSERT INTO
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - SQLi INSERT INTO"; flow:established,to_server; http.uri; content:"INSERT"; nocase; content:"INTO"; nocase; distance:1; classtype:web-application-attack; sid:1000008; rev:1;)
+
+# Règle 8 - Evasion encodage URL (%27 = ' et union/select encodés)
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - SQLi evasion encodage URL"; flow:established,to_server; http.uri; pcre:"/(%27|%22).{0,30}(%75%6e%69%6f%6e|union).{0,30}(%73%65%6c%65%63%74|select)/Ui"; classtype:web-application-attack; sid:1000020; rev:1;)
+
+# Règle 9 - Evasion commentaires inline /**/
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - SQLi evasion commentaires inline"; flow:established,to_server; http.uri; pcre:"/UN(%2F|\/)\*+(%2F|\/)\*+(%2F|\/)ION/Ui"; classtype:web-application-attack; sid:1000021; rev:1;)
+
+# Règle 10 - Evasion casse mixte uNiOn SeLeCt
+alert http any any -> $HTTP_SERVERS any (msg:"WEB - SQLi evasion casse mixte"; flow:established,to_server; http.uri; pcre:"/uNiOn|UnIoN|sElEcT|SeLeCt/U"; classtype:web-application-attack; sid:1000022; rev:1;)
