@@ -1,35 +1,29 @@
 # =============================================================================
 #  local.rules — Equipe 5
-#  Round : Injection SQL complet
+#  Round : Injection SQL ULTIMATE DEFENSE
 # =============================================================================
 
-# 1️⃣ Attaques logiques classiques
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi OR 1=1"; flow:established,to_server; http.uri; content:"or 1=1"; nocase; sid:5101; rev:1;)
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi OR 1=1 comment --"; flow:established,to_server; http.uri; content:"or 1=1--"; nocase; sid:5102; rev:1;)
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi quote OR quote"; flow:established,to_server; http.uri; content:"' or '"; nocase; sid:5103; rev:1;)
 
-# 2️⃣ UNION SELECT
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi UNION SELECT"; flow:established,to_server; http.uri; content:"union select"; nocase; sid:5104; rev:1;)
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi UNION SELECT URL encoded"; flow:established,to_server; http.uri; pcre:"/union\s*select/i"; sid:5105; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi OR 1=1"; flow:established,to_server; http.uri; content:"or 1=1"; nocase; sid:6001; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi UNION SELECT"; flow:established,to_server; http.uri; content:"union select"; nocase; sid:6002; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi SELECT keyword"; flow:established,to_server; http.uri; content:"select "; nocase; sid:6003; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi INSERT keyword"; flow:established,to_server; http.uri; content:"insert "; nocase; sid:6004; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi UPDATE keyword"; flow:established,to_server; http.uri; content:"update "; nocase; sid:6005; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi DELETE keyword"; flow:established,to_server; http.uri; content:"delete "; nocase; sid:6006; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi DROP keyword"; flow:established,to_server; http.uri; content:"drop "; nocase; sid:6007; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi comment --"; flow:established,to_server; http.uri; content:"--"; nocase; sid:6008; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi comment #"; flow:established,to_server; http.uri; content:"#"; nocase; sid:6009; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi sleep time attack"; flow:established,to_server; http.uri; content:"sleep("; nocase; sid:6010; rev:1;)
 
-# 3️⃣ Commandes SQL
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi SELECT keyword"; flow:established,to_server; http.uri; content:"select "; nocase; sid:5106; rev:1;)
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi INSERT keyword"; flow:established,to_server; http.uri; content:"insert "; nocase; sid:5107; rev:1;)
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi UPDATE keyword"; flow:established,to_server; http.uri; content:"update "; nocase; sid:5108; rev:1;)
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi DELETE keyword"; flow:established,to_server; http.uri; content:"delete "; nocase; sid:5109; rev:1;)
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi DROP keyword"; flow:established,to_server; http.uri; content:"drop "; nocase; sid:5110; rev:1;)
 
-# 4️⃣ Schémas et temps
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi information_schema"; flow:established,to_server; http.uri; content:"information_schema"; nocase; sid:5111; rev:1;)
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi sleep time attack"; flow:established,to_server; http.uri; content:"sleep("; nocase; sid:5112; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi possible obfuscated keyword in URI"; flow:established,to_server; http.uri; pcre:"/(select|union|insert|update|delete|drop)/i"; sid:6011; rev:1;)
 
-# 5️⃣ Contournement avec commentaires
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi comment --"; flow:established,to_server; http.uri; content:"--"; nocase; sid:5113; rev:1;)
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi comment #"; flow:established,to_server; http.uri; content:"#"; nocase; sid:5114; rev:1;)
 
-# 6️⃣ Caractères spéciaux
-alert http any any -> $HTTP_SERVERS any (msg:"SQLi semicolon"; flow:established,to_server; http.uri; content:";"; nocase; sid:5115; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi POST body"; flow:established,to_server; http.client_body; pcre:"/(select|union|insert|update|delete|drop|or\s*1=1|information_schema|sleep\()/i"; sid:6012; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi comment in POST body"; flow:established,to_server; http.client_body; content:"--"; nocase; sid:6013; rev:1;)
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi hash comment in POST body"; flow:established,to_server; http.client_body; content:"#"; nocase; sid:6014; rev:1;)
 
 # 7️⃣ Catch-all regex pour tout SELECT, UNION, INSERT, DROP encodé ou obfusqué
 alert http any any -> $HTTP_SERVERS any (msg:"SQLi possible SELECT/UNION/INSERT/DROP obfusqué"; flow:established,to_server; http.uri; pcre:"/(select|union|insert|drop|delete|update)/i"; sid:5116; rev:1;)
 
+alert http any any -> $HTTP_SERVERS any (msg:"SQLi general catch-all URI or BODY"; flow:established,to_server; http.uri; http.client_body; pcre:"/(select|union|insert|update|delete|drop|or\s*1=1)/i"; sid:6015; rev:1;)
